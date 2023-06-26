@@ -1,4 +1,4 @@
-package com.example.ses_email_template.config;
+package com.example.ses_email_template.ses;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;

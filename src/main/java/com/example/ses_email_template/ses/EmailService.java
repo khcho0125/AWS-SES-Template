@@ -1,48 +1,47 @@
-package com.example.ses_email_template;
+package com.example.ses_email_template.ses;
 
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.model.CreateTemplateRequest;
 import com.amazonaws.services.simpleemail.model.Destination;
 import com.amazonaws.services.simpleemail.model.SendTemplatedEmailRequest;
 import com.amazonaws.services.simpleemail.model.Template;
+import com.example.ses_email_template.ses.template.EmailTemplate;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Arrays;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class SESService {
+public class EmailService {
 
     private final AmazonSimpleEmailService amazonSimpleEmailService;
 
-    public void signupSendEmail(EmailDto emailDto) {
-        Destination des = new Destination();
-        des.setToAddresses(List.of(emailDto.getEmail()));
+    @Value("${mail.source}")
+    private String source;
 
-        Map<String, String> data = new HashMap<>();
-        data.put("user", emailDto.getUsername());
-        data.put("link", emailDto.getLink());
-        String templateData = new Gson().toJson(data);
+    public void sendEmail(EmailTemplate template, String... emails) {
+        Destination des = new Destination();
+        des.setToAddresses(Arrays.asList(emails));
+
+        String templateData = new Gson().toJson(template.getData());
 
         SendTemplatedEmailRequest emailRequest = new SendTemplatedEmailRequest();
-        emailRequest.setTemplate("Test");
+        emailRequest.setTemplate(template.getName());
         emailRequest.setDestination(des);
-        emailRequest.setSource("khcho0125@dsm.hs.kr");
+        emailRequest.setSource(source);
         emailRequest.setTemplateData(templateData);
 
         amazonSimpleEmailService.sendTemplatedEmail(emailRequest);
     }
 
-    public void Template(String HtmlTemplate) { // 프로젝트에서 Email Template 넣어주기
+    public void createTemplate(String name, String subject, String htmlTemplate) {
         Template template = new Template();
-        template.setTemplateName("Test");
-        template.setSubjectPart("AWS SES에 오신 것을 환영합니다.");
-        template.setTextPart(null);
-        template.setHtmlPart(HtmlTemplate);
+        template.setTemplateName(name);
+        template.setSubjectPart(subject);
+        template.setHtmlPart(htmlTemplate);
 
         CreateTemplateRequest request = new CreateTemplateRequest().withTemplate(template);
         amazonSimpleEmailService.createTemplate(request);
